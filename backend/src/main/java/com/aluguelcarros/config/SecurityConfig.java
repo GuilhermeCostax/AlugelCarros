@@ -18,6 +18,8 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
+import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
+import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -44,8 +46,21 @@ public class SecurityConfig {
                         .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth -> oauth
+                        .bearerTokenResolver(bearerTokenResolver())
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())));
         return http.build();
+    }
+
+    /** Ignora o token nas rotas públicas: um token expirado no navegador não deve impedir login/cadastro. */
+    private BearerTokenResolver bearerTokenResolver() {
+        DefaultBearerTokenResolver padrao = new DefaultBearerTokenResolver();
+        return request -> {
+            String uri = request.getRequestURI();
+            if (uri.equals("/api/auth/login") || uri.equals("/api/auth/registro")) {
+                return null;
+            }
+            return padrao.resolve(request);
+        };
     }
 
     /** Converte a claim "perfil" do token em ROLE_CLIENTE, ROLE_EMPRESA ou ROLE_BANCO. */
