@@ -2,8 +2,17 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 import { PERFIS, ehAgente } from '../utils/perfis';
 
-const MENU_CLIENTE = [{ to: '/meus-dados', rotulo: 'Meus dados' }];
-const MENU_AGENTE = [{ to: '/clientes', rotulo: 'Clientes' }];
+const MENU_CLIENTE = [
+  { to: '/pedidos', rotulo: 'Meus pedidos' },
+  { to: '/contratos', rotulo: 'Contratos' },
+  { to: '/meus-dados', rotulo: 'Meus dados' },
+];
+const MENU_AGENTE = [
+  { to: '/pedidos', rotulo: 'Pedidos' },
+  { to: '/contratos', rotulo: 'Contratos' },
+  { to: '/automoveis', rotulo: 'Automóveis' },
+  { to: '/clientes', rotulo: 'Clientes' },
+];
 
 export default function Layout() {
   const { usuario, logout } = useAuth();

@@ -8,8 +8,10 @@ import com.aluguelcarros.exception.RegraNegocioException;
 import com.aluguelcarros.model.Cliente;
 import com.aluguelcarros.model.Perfil;
 import com.aluguelcarros.model.Rendimento;
+import com.aluguelcarros.model.StatusPedido;
 import com.aluguelcarros.model.Usuario;
 import com.aluguelcarros.repository.ClienteRepository;
+import com.aluguelcarros.repository.PedidoAluguelRepository;
 import com.aluguelcarros.repository.UsuarioRepository;
 import com.aluguelcarros.security.UsuarioLogado;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +32,7 @@ public class ClienteService {
 
     private final ClienteRepository clienteRepository;
     private final UsuarioRepository usuarioRepository;
+    private final PedidoAluguelRepository pedidoRepository;
     private final PasswordEncoder passwordEncoder;
     private final UsuarioLogado usuarioLogado;
 
@@ -84,6 +87,9 @@ public class ClienteService {
     @Transactional
     public void excluir(Long id) {
         Cliente cliente = buscarComPermissao(id);
+        if (pedidoRepository.existsByClienteIdAndStatus(id, StatusPedido.CONTRATADO)) {
+            throw new RegraNegocioException("Não é possível excluir um cliente com contrato ativo.");
+        }
         clienteRepository.delete(cliente);
     }
 
