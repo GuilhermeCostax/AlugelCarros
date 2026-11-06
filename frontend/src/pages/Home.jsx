@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 import { PERFIS, ehAgente } from '../utils/perfis';
 
@@ -11,9 +12,15 @@ export default function Home() {
 
       <div className="card">
         {ehAgente(usuario.perfil) ? (
-          <p>Como agente, você poderá cadastrar automóveis, analisar pedidos de aluguel e executar contratos.</p>
+          <p>
+            Como agente, você pode <Link to="/clientes">gerenciar os clientes</Link>, e em breve cadastrar automóveis,
+            analisar pedidos de aluguel e executar contratos.
+          </p>
         ) : (
-          <p>Como cliente, você poderá manter seus dados, informar rendimentos e criar pedidos de aluguel.</p>
+          <p>
+            Como cliente, você pode <Link to="/meus-dados">manter seus dados e rendimentos</Link>, e em breve criar
+            pedidos de aluguel.
+          </p>
         )}
       </div>
     </>

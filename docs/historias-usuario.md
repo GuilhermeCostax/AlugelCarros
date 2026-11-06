@@ -1,6 +1,6 @@
 # Histórias de Usuário — Sistema de Aluguel de Carros
 
-**Versão:** v1 · **Atores:** Usuário (não autenticado), Cliente, Agente (Empresa ou Banco), Banco
+**Versão:** v2 (v2: adicionada a US17 — gestão de clientes pelo agente) · **Atores:** Usuário (não autenticado), Cliente, Agente (Empresa ou Banco), Banco
 
 ---
 
@@ -45,6 +45,14 @@
 - Máximo de **3** rendimentos por cliente.
 - Cada rendimento tem entidade empregadora e valor (> 0).
 - O sistema exibe o total de rendimentos.
+
+### US17 — Gerenciar clientes (agente)
+**Como** agente (empresa ou banco), **quero** listar, cadastrar, editar e excluir clientes, **para** manter a base de contratantes que vou analisar.
+
+**Critérios de aceitação**
+- A lista mostra nome, CPF, profissão, quantidade de rendimentos e renda total.
+- Ao cadastrar, o agente define login e senha do cliente.
+- Clientes não têm acesso a esta funcionalidade; cada cliente só acessa os próprios dados (US04).
 
 ---
 

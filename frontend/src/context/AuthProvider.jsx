@@ -20,6 +20,14 @@ export default function AuthProvider({ children }) {
     setUsuario(usuario);
   }, []);
 
+  const atualizarUsuario = useCallback((parcial) => {
+    setUsuario((atual) => {
+      const novo = { ...atual, ...parcial };
+      localStorage.setItem('usuario', JSON.stringify(novo));
+      return novo;
+    });
+  }, []);
+
   const logout = useCallback(() => {
     localStorage.removeItem('token');
     localStorage.removeItem('usuario');
@@ -50,8 +58,8 @@ export default function AuthProvider({ children }) {
   }, [logout]);
 
   const valor = useMemo(
-    () => ({ usuario, autenticado: !!usuario, login, registrar, logout }),
-    [usuario, login, registrar, logout],
+    () => ({ usuario, autenticado: !!usuario, login, registrar, logout, atualizarUsuario }),
+    [usuario, login, registrar, logout, atualizarUsuario],
   );
 
   return <AuthContext.Provider value={valor}>{children}</AuthContext.Provider>;
