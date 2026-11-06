@@ -1,0 +1,22 @@
+# Segredos
+.env
+*.env
+!.env.example
+
+# Java / Maven
+backend/target/
+*.class
+*.log
+
+# Node / Vite
+node_modules/
+frontend/dist/
+
+# IDEs / SO
+.idea/
+.vscode/
+*.iml
+.DS_Store
+
+# Anotações pessoais
+PLANO.md

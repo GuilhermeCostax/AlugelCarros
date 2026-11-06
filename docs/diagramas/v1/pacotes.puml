@@ -1,0 +1,53 @@
+@startuml pacotes
+!pragma layout smetana
+title Sistema de Aluguel de Carros — Diagrama de Pacotes / Visão Lógica (v1)
+skinparam shadowing false
+skinparam packageStyle folder
+skinparam package {
+  BackgroundColor #F5F9FF
+  BorderColor #2C5282
+}
+
+package "Subsistema de Construção das Páginas Web\n(frontend — React + Vite) «View»" as WEB {
+  package pages
+  package components
+  package context
+  package services
+  package routes
+}
+
+package "Subsistema de Gestão de Pedidos e Contratos\n(backend — Spring Boot, com.aluguelcarros)" as API {
+  package controller <<Controller>>
+  package dto
+  package service
+  package repository
+  package model <<Model>>
+  package security
+  package config
+  package exception
+}
+
+database "Supabase\n(PostgreSQL)" as DB
+
+routes ..> pages
+pages ..> components
+pages ..> context
+pages ..> services
+context ..> services
+
+services ..> controller : HTTP / JSON (REST + JWT)
+
+controller ..> dto
+controller ..> service
+controller ..> exception
+service ..> repository
+service ..> model
+service ..> dto
+service ..> exception
+repository ..> model
+security ..> repository
+security ..> service
+config ..> security
+
+repository ..> DB : JPA / JDBC
+@enduml
