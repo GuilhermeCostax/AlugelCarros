@@ -129,12 +129,14 @@ a.btn { display: inline-block; text-decoration: none; text-align: center; }
 .contagem { color: var(--cor-texto-suave); font-size: 0.875rem; white-space: nowrap; }
 .tabela-rolagem { overflow-x: auto; }
 .tabela { width: 100%; border-collapse: collapse; font-size: 0.925rem; }
-.tabela th, .tabela td { padding: 10px 16px; text-align: left; border-bottom: 1px solid var(--cor-borda); white-space: nowrap; }
+.tabela th, .tabela td { padding: 10px 16px; text-align: left; border-bottom: 1px solid var(--cor-borda); }
+.tabela th, .tabela td.num, .acoes-linha { white-space: nowrap; }
 .tabela th { background: #f8fafc; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--cor-texto-suave); }
 .tabela tbody tr:last-child td { border-bottom: none; }
 .tabela .num { text-align: right; font-variant-numeric: tabular-nums; }
 .tabela td.vazio { text-align: center; padding: 24px; }
-.acoes-linha { display: flex; gap: 6px; justify-content: flex-end; }
+.acoes-linha { text-align: right; }
+.acoes-linha > * + * { margin-left: 6px; }
 
 .zona-perigo { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-top: 16px; border-color: #f5c2c2; flex-wrap: wrap; }
 .zona-perigo p { margin: 0; color: var(--cor-texto-suave); }
