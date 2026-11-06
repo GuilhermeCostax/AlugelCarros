@@ -1,32 +1,57 @@
-import { LogOut } from 'lucide-react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import {
+  Car,
+  ChevronsUpDown,
+  ClipboardList,
+  FileSignature,
+  LayoutDashboard,
+  LogOut,
+  Plus,
+  UserRound,
+  Users,
+} from 'lucide-react';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { cn } from '@/lib/utils';
-import Logo from './Logo';
+import { Separator } from '@/components/ui/separator';
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarInset,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarRail,
+  SidebarTrigger,
+  useSidebar,
+} from '@/components/ui/sidebar';
 import { useAuth } from '../context/useAuth';
 import { PERFIS, ehAgente } from '../utils/perfis';
 
 const MENU_CLIENTE = [
-  { to: '/pedidos', rotulo: 'Meus pedidos' },
-  { to: '/contratos', rotulo: 'Contratos' },
-  { to: '/meus-dados', rotulo: 'Meus dados' },
+  { to: '/', rotulo: 'Início', Icone: LayoutDashboard },
+  { to: '/pedidos', rotulo: 'Meus pedidos', Icone: ClipboardList },
+  { to: '/contratos', rotulo: 'Contratos', Icone: FileSignature },
+  { to: '/meus-dados', rotulo: 'Meus dados', Icone: UserRound },
 ];
 const MENU_AGENTE = [
-  { to: '/pedidos', rotulo: 'Pedidos' },
-  { to: '/contratos', rotulo: 'Contratos' },
-  { to: '/automoveis', rotulo: 'Automóveis' },
-  { to: '/clientes', rotulo: 'Clientes' },
+  { to: '/', rotulo: 'Início', Icone: LayoutDashboard },
+  { to: '/pedidos', rotulo: 'Pedidos', Icone: ClipboardList },
+  { to: '/contratos', rotulo: 'Contratos', Icone: FileSignature },
+  { to: '/automoveis', rotulo: 'Automóveis', Icone: Car },
+  { to: '/clientes', rotulo: 'Clientes', Icone: Users },
 ];
 
 function iniciais(nome = '') {
@@ -34,10 +59,67 @@ function iniciais(nome = '') {
   return ((partes[0]?.[0] ?? '') + (partes.length > 1 ? partes.at(-1)[0] : '')).toUpperCase();
 }
 
+/** Item do menu cujo caminho mais longo corresponde à URL atual. */
+function itemAtivo(menu, pathname) {
+  return menu
+    .filter((i) => (i.to === '/' ? pathname === '/' : pathname === i.to || pathname.startsWith(`${i.to}/`)))
+    .sort((a, b) => b.to.length - a.to.length)[0];
+}
+
+/** Item de navegação; no celular fecha a gaveta ao navegar. */
+function ItemMenu({ to, rotulo, Icone, ativo }) {
+  const { setOpenMobile } = useSidebar();
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton asChild isActive={ativo} tooltip={rotulo}>
+        <NavLink to={to} end={to === '/'} onClick={() => setOpenMobile(false)}>
+          <Icone />
+          <span>{rotulo}</span>
+        </NavLink>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
+  );
+}
+
+function MenuUsuario({ usuario, onSair }) {
+  const { isMobile } = useSidebar();
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <SidebarMenuButton size="lg" className="data-[state=open]:bg-sidebar-accent">
+          <Avatar className="size-8 rounded-lg">
+            <AvatarFallback className="rounded-lg bg-primary/10 text-xs font-semibold text-primary">
+              {iniciais(usuario.nome)}
+            </AvatarFallback>
+          </Avatar>
+          <div className="grid flex-1 text-left text-sm leading-tight">
+            <span className="truncate font-medium">{usuario.nome}</span>
+            <span className="truncate text-xs text-muted-foreground">{PERFIS[usuario.perfil]}</span>
+          </div>
+          <ChevronsUpDown className="ml-auto size-4" />
+        </SidebarMenuButton>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-56" side={isMobile ? 'top' : 'right'} align="end" sideOffset={8}>
+        <DropdownMenuLabel className="font-normal">
+          <div className="text-sm font-medium text-foreground">{usuario.nome}</div>
+          <div className="text-xs text-muted-foreground">{usuario.login} · {PERFIS[usuario.perfil]}</div>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem variant="destructive" onSelect={onSair}>
+          <LogOut /> Sair
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 export default function Layout() {
   const { usuario, logout } = useAuth();
   const navigate = useNavigate();
-  const menu = [{ to: '/', rotulo: 'Início', end: true }, ...(ehAgente(usuario.perfil) ? MENU_AGENTE : MENU_CLIENTE)];
+  const { pathname } = useLocation();
+  const agente = ehAgente(usuario.perfil);
+  const menu = agente ? MENU_AGENTE : MENU_CLIENTE;
+  const ativo = itemAtivo(menu, pathname);
 
   function sair() {
     logout();
@@ -45,68 +127,70 @@ export default function Layout() {
   }
 
   return (
-    <div className="min-h-svh bg-muted/40">
-      <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-        <div className="mx-auto flex h-14 max-w-6xl items-center gap-6 px-4">
-          <NavLink to="/" aria-label="Início">
-            <Logo />
-          </NavLink>
+    <SidebarProvider>
+      <Sidebar collapsible="icon" variant="inset">
+        <SidebarHeader>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton size="lg" asChild tooltip="AluguelCarros">
+                <NavLink to="/">
+                  <span className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                    <Car className="size-4" />
+                  </span>
+                  <span className="grid flex-1 text-left leading-tight">
+                    <span className="truncate font-semibold">AluguelCarros</span>
+                    <span className="truncate text-xs text-muted-foreground">Gestão de aluguéis</span>
+                  </span>
+                </NavLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarHeader>
 
-          <nav className="hidden items-center gap-1 md:flex">
-            {menu.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                end={item.end}
-                className={({ isActive }) =>
-                  cn(
-                    'rounded-md px-3 py-1.5 text-sm font-medium transition-colors hover:bg-muted hover:text-foreground',
-                    isActive ? 'bg-muted text-foreground' : 'text-muted-foreground',
-                  )
-                }
-              >
-                {item.rotulo}
-              </NavLink>
-            ))}
-          </nav>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="ml-auto h-9 gap-2 px-2" aria-label="Menu do usuário">
-                <Avatar className="size-7">
-                  <AvatarFallback className="bg-primary/10 text-xs font-semibold text-primary">
-                    {iniciais(usuario.nome)}
-                  </AvatarFallback>
-                </Avatar>
-                <span className="hidden max-w-40 truncate text-sm font-medium sm:inline">{usuario.nome}</span>
-                <Badge variant="secondary" className="hidden sm:inline-flex">{PERFIS[usuario.perfil]}</Badge>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel className="font-normal">
-                <div className="text-sm font-medium text-foreground">{usuario.nome}</div>
-                <div className="text-xs text-muted-foreground">{usuario.login} · {PERFIS[usuario.perfil]}</div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator className="md:hidden" />
-              <DropdownMenuGroup className="md:hidden">
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupLabel>Navegação</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
                 {menu.map((item) => (
-                  <DropdownMenuItem key={item.to} onSelect={() => navigate(item.to)}>
-                    {item.rotulo}
-                  </DropdownMenuItem>
+                  <ItemMenu key={item.to} {...item} ativo={ativo?.to === item.to && pathname !== '/pedidos/novo'} />
                 ))}
-              </DropdownMenuGroup>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem variant="destructive" onSelect={sair}>
-                <LogOut /> Sair
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </header>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
 
-      <main className="mx-auto max-w-6xl px-4 py-8">
-        <Outlet />
-      </main>
-    </div>
+          {!agente && (
+            <SidebarGroup>
+              <SidebarGroupLabel>Ações</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  <ItemMenu to="/pedidos/novo" rotulo="Novo pedido" Icone={Plus} ativo={pathname === '/pedidos/novo'} />
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          )}
+        </SidebarContent>
+
+        <SidebarFooter>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <MenuUsuario usuario={usuario} onSair={sair} />
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarFooter>
+        <SidebarRail />
+      </Sidebar>
+
+      <SidebarInset>
+        <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 rounded-t-xl border-b bg-background/95 px-4 backdrop-blur">
+          <SidebarTrigger className="-ml-1" />
+          <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
+          <span className="text-sm font-medium">{pathname === '/pedidos/novo' ? 'Novo pedido' : ativo?.rotulo ?? 'AluguelCarros'}</span>
+        </header>
+        <main className="mx-auto w-full max-w-6xl flex-1 p-4 md:p-8">
+          <Outlet />
+        </main>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

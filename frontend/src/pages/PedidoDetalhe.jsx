@@ -14,6 +14,7 @@ import CabecalhoPagina from '../components/CabecalhoPagina';
 import Campo from '../components/Campo';
 import Carregando from '../components/Carregando';
 import Confirmar from '../components/Confirmar';
+import LinhaDoTempoPedido from '../components/LinhaDoTempoPedido';
 import StatusBadge from '../components/StatusBadge';
 import { useAuth } from '../context/useAuth';
 import { concederCredito } from '../services/contratoService';
@@ -96,6 +97,16 @@ export default function PedidoDetalhe() {
 
       <div className="grid gap-6">
         <Alerta>{erro}</Alerta>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Andamento</CardTitle>
+            <CardDescription>Etapas do pedido, da criação ao contrato de crédito.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <LinhaDoTempoPedido pedido={pedido} />
+          </CardContent>
+        </Card>
 
         <div className="grid gap-6 md:grid-cols-2">
           <Card>
