@@ -24,7 +24,7 @@
 
 ## 🚧 Status do Projeto
 
-![Versão](https://img.shields.io/badge/Versão-v1.0.0-blue?style=for-the-badge) ![Java](https://img.shields.io/badge/Java-25-007ec6?style=for-the-badge&logo=openjdk&logoColor=white) ![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.0.9-007ec6?style=for-the-badge&logo=springboot&logoColor=white) ![Maven](https://img.shields.io/badge/Maven-3.9-007ec6?style=for-the-badge&logo=apachemaven&logoColor=white) ![React](https://img.shields.io/badge/React-19.3-007ec6?style=for-the-badge&logo=react&logoColor=white) ![Vite](https://img.shields.io/badge/Vite-6.4-007ec6?style=for-the-badge&logo=vite&logoColor=white) ![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL_17-007ec6?style=for-the-badge&logo=supabase&logoColor=white) ![GitHub last commit](https://img.shields.io/github/last-commit/GuilhermeCostax/AlugelCarros?style=for-the-badge&logo=clockify)
+![Versão](https://img.shields.io/badge/Versão-v1.0.0-blue?style=for-the-badge) ![Java](https://img.shields.io/badge/Java-25-007ec6?style=for-the-badge&logo=openjdk&logoColor=white) ![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.0.9-007ec6?style=for-the-badge&logo=springboot&logoColor=white) ![Maven](https://img.shields.io/badge/Maven-3.9-007ec6?style=for-the-badge&logo=apachemaven&logoColor=white) ![React](https://img.shields.io/badge/React-19.3-007ec6?style=for-the-badge&logo=react&logoColor=white) ![Vite](https://img.shields.io/badge/Vite-6.4-007ec6?style=for-the-badge&logo=vite&logoColor=white) ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-007ec6?style=for-the-badge&logo=tailwindcss&logoColor=white) ![shadcn/ui](https://img.shields.io/badge/shadcn%2Fui-007ec6?style=for-the-badge&logo=shadcnui&logoColor=white) ![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL_17-007ec6?style=for-the-badge&logo=supabase&logoColor=white) ![GitHub last commit](https://img.shields.io/github/last-commit/GuilhermeCostax/AlugelCarros?style=for-the-badge&logo=clockify)
 
 ✅ Protótipo funcional concluído: autenticação, CRUD de clientes, automóveis, pedidos com status, avaliação financeira, contratos e crédito.
 
@@ -112,7 +112,9 @@ stateDiagram-v2
 * **Linguagem:** JavaScript (ES2022+, JSX)
 * **Roteamento:** React Router 7
 * **Requisições HTTP:** Axios 1 (interceptor que envia o token JWT)
-* **Estilização:** CSS puro com variáveis (sem framework)
+* **Estilização:** Tailwind CSS 4
+* **Componentes de interface:** [shadcn/ui](https://ui.shadcn.com/) (Radix UI) — Button, Card, Table, Tabs, Badge, Alert, AlertDialog, RadioGroup, DropdownMenu
+* **Ícones e notificações:** Lucide React e Sonner (toasts)
 * **Gerenciamento de Estado:** Context API (`AuthProvider`)
 * **Build Tool:** Vite 6
 
@@ -164,7 +166,7 @@ A modelagem foi feita antes da implementação (**v1**) e revisada durante o des
 | Classes | `Automovel.isDisponivel()` substituído por verificação de **conflito de períodos** | A disponibilidade depende do período solicitado, então a regra passou para uma consulta no repositório (`PedidoAluguelRepository.existeConflito`) usada pelo `PedidoService`. |
 | Classes | `Agente.avaliar(...)` e `Banco.concederCredito(...)` movidos | A avaliação virou responsabilidade do próprio pedido (`PedidoAluguel.aprovar/reprovar`), que controla suas transições de estado; a concessão de crédito ficou no `ContratoService`, que valida o perfil do usuário logado. |
 | Classes | Novos métodos `PedidoAluguel.novo(...)` e `contratar()`, constantes `MAX_RENDIMENTOS` e `STATUS_ATIVOS` | Concentram no modelo as regras de criação, máximo de 3 rendimentos e status que ocupam o automóvel. |
-| Pacotes | Detalhamento das classes de cada pacote e novo pacote `utils` no front-end | Deixar explícito o alinhamento entre a visão lógica e o código. |
+| Pacotes | Detalhamento das classes de cada pacote e novos pacotes `utils`, `components/ui` (shadcn/ui) e `lib` no front-end | Deixar explícito o alinhamento entre a visão lógica e o código e registrar a padronização visual com shadcn/ui. |
 | Histórias | Novas US17 e US18 e critérios de aceitação refinados | Regras descobertas durante a implementação (conflito de datas, limite do crédito ao valor do contrato, parcela pela Tabela Price). |
 
 ---
@@ -392,6 +394,8 @@ java -jar target/aluguel-carros-0.0.1-SNAPSHOT.jar
     └── /src
         ├── /pages                     # 📄 Telas (Login, Pedidos, Contratos...)
         ├── /components                # 🧱 Componentes reutilizáveis
+        │   └── /ui                    # 🎨 Componentes shadcn/ui (Button, Card, Table...)
+        ├── /lib                       # 🔧 utils (função cn do shadcn/ui)
         ├── /context                   # 🔐 Autenticação (Context API)
         ├── /routes                    # 🧭 Rotas públicas e protegidas
         ├── /services                  # 🔌 Chamadas HTTP (Axios)
@@ -493,6 +497,7 @@ npm run build
 * 📖 **Banco de Dados:** [Documentação do **Supabase**](https://supabase.com/docs)
 * 📖 **Front-end:** [Documentação do **React**](https://react.dev/reference/react) e [React Router](https://reactrouter.com/)
 * 📖 **Build Tool:** [Guia do **Vite**](https://vitejs.dev/guide/)
+* 📖 **Interface:** [**shadcn/ui**](https://ui.shadcn.com/docs) e [Tailwind CSS](https://tailwindcss.com/docs)
 * 📖 **Modelagem:** [PlantUML](https://plantuml.com/) e leitura sobre [Diagrama de Pacotes](https://www.uml-diagrams.org/package-diagrams.html)
 
 ---
