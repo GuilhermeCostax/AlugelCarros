@@ -19,13 +19,16 @@ package "Subsistema de Construção das Páginas Web\n(frontend — React + Vite
     rectangle "Login, Registro, Home,\nMeusDados, Clientes, ClienteEditar,\nAutomoveis, Pedidos, PedidoForm,\nPedidoDetalhe, Contratos" as r_pages
   }
   package components {
-    rectangle "Layout, Logo, CabecalhoPagina,\nClienteForm, RendimentosEditor,\nStatusBadge, Confirmar, Campo,\nAlerta, Carregando" as r_components
+    rectangle "Layout (Sidebar), Logo, CabecalhoPagina,\nClienteForm, RendimentosEditor,\nLinhaDoTempoPedido, StatusBadge,\nConfirmar, Campo, Alerta, Carregando" as r_components
   }
   package "components/ui\n(shadcn/ui)" as ui {
-    rectangle "Button, Card, Input, Label, Table,\nTabs, Badge, Alert, AlertDialog,\nRadioGroup, DropdownMenu, Sonner..." as r_ui
+    rectangle "Sidebar, Chart (Recharts), Button, Card,\nInput, Table, Tabs, Badge, Alert,\nAlertDialog, RadioGroup, DropdownMenu,\nTooltip, Sheet, Sonner..." as r_ui
   }
   package lib {
     rectangle "utils (cn)" as r_lib
+  }
+  package hooks {
+    rectangle "use-mobile" as r_hooks
   }
   package context {
     rectangle "AuthProvider, useAuth" as r_context
@@ -76,6 +79,7 @@ context ..> services
 pages ..> ui
 components ..> ui
 ui ..> lib
+ui ..> hooks
 
 services ..> controller : HTTP / JSON\n(REST + JWT)
 

@@ -100,7 +100,9 @@ stateDiagram-v2
 - 📊 **Análise financeira:** agentes filtram os pedidos por status e aprovam/reprovam com parecer, vendo a renda total e os rendimentos do cliente.
 - 📃 **Contratos:** execução do contrato de pedidos aprovados, registrando o automóvel em nome do cliente, da empresa ou do banco.
 - 🏦 **Contrato de crédito:** bancos concedem crédito ao contrato; a parcela é calculada pela Tabela Price.
-- 🏠 **Painel inicial:** resumo de pedidos por status e atalhos para as ações de cada perfil.
+- 📊 **Painel inicial (dashboard):** indicadores (pedidos, valor contratado e financiado) e gráficos de pedidos por status e de contratos por mês.
+- 🧭 **Linha do tempo do pedido:** etapas criação → análise → contrato → crédito, com datas e responsáveis.
+- 🗂️ **Navegação lateral:** barra lateral recolhível com ícones por seção (gaveta no celular).
 
 ---
 
@@ -115,6 +117,7 @@ stateDiagram-v2
 * **Estilização:** Tailwind CSS 4
 * **Componentes de interface:** [shadcn/ui](https://ui.shadcn.com/) (Radix UI) — Button, Card, Table, Tabs, Badge, Alert, AlertDialog, RadioGroup, DropdownMenu
 * **Ícones e notificações:** Lucide React e Sonner (toasts)
+* **Gráficos:** Recharts (componente Chart do shadcn/ui)
 * **Gerenciamento de Estado:** Context API (`AuthProvider`)
 * **Build Tool:** Vite 6
 
@@ -396,6 +399,7 @@ java -jar target/aluguel-carros-0.0.1-SNAPSHOT.jar
         ├── /components                # 🧱 Componentes reutilizáveis
         │   └── /ui                    # 🎨 Componentes shadcn/ui (Button, Card, Table...)
         ├── /lib                       # 🔧 utils (função cn do shadcn/ui)
+        ├── /hooks                     # 🎣 use-mobile (usado pela barra lateral)
         ├── /context                   # 🔐 Autenticação (Context API)
         ├── /routes                    # 🧭 Rotas públicas e protegidas
         ├── /services                  # 🔌 Chamadas HTTP (Axios)
@@ -410,16 +414,16 @@ java -jar target/aluguel-carros-0.0.1-SNAPSHOT.jar
 
 | Tela | Captura de Tela |
 | :---: | :---: |
-| **Login** | **Painel inicial (Banco)** |
+| **Login** | **Painel inicial com gráficos (Banco)** |
 | <img src="docs/imagens/login.jpg" alt="Tela de login" width="400px"> | <img src="docs/imagens/home-agente.jpg" alt="Painel inicial do agente" width="400px"> |
-| **Pedidos (visão do agente)** | **Detalhe do pedido com parecer** |
+| **Pedidos (visão do agente)** | **Detalhe do pedido (linha do tempo)** |
 | <img src="docs/imagens/pedidos-agente.jpg" alt="Lista de pedidos com filtros por status" width="400px"> | <img src="docs/imagens/pedido-detalhe.jpg" alt="Detalhe do pedido" width="400px"> |
 | **Contrato e crédito** | **Contratos** |
 | <img src="docs/imagens/contrato-credito.jpg" alt="Contrato com crédito concedido" width="400px"> | <img src="docs/imagens/contratos.jpg" alt="Lista de contratos" width="400px"> |
 | **Novo pedido (cliente)** | **Meus dados e rendimentos (cliente)** |
 | <img src="docs/imagens/novo-pedido.jpg" alt="Novo pedido de aluguel" width="400px"> | <img src="docs/imagens/meus-dados.jpg" alt="Dados e rendimentos do cliente" width="400px"> |
-| **Automóveis (agente)** | |
-| <img src="docs/imagens/automoveis.jpg" alt="Cadastro de automóveis" width="400px"> | |
+| **Automóveis (agente)** | **Avaliação de pedido pendente** |
+| <img src="docs/imagens/automoveis.jpg" alt="Cadastro de automóveis" width="400px"> | <img src="docs/imagens/pedido-avaliacao.jpg" alt="Pedido pendente aguardando parecer" width="400px"> |
 
 ### 💻 Exemplo de Saída no Terminal (API)
 
