@@ -1,11 +1,103 @@
 :root {
+  --cor-fundo: #f4f6fa;
+  --cor-superficie: #ffffff;
+  --cor-texto: #1a202c;
+  --cor-texto-suave: #5a6577;
+  --cor-borda: #dde3ec;
+  --cor-primaria: #2c5282;
+  --cor-primaria-hover: #234470;
+  --cor-erro: #c53030;
+  --cor-erro-fundo: #fdecec;
+  --cor-sucesso: #276749;
+  --cor-sucesso-fundo: #e6f6ec;
+  --raio: 10px;
+
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   line-height: 1.5;
-  color: #1a202c;
-  background-color: #f7fafc;
+  color: var(--cor-texto);
+  background-color: var(--cor-fundo);
 }
 
 * { box-sizing: border-box; }
 body { margin: 0; min-height: 100vh; }
+h1 { margin: 0 0 4px; font-size: 1.6rem; }
+a { color: var(--cor-primaria); }
 
 .container { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
+.subtitulo { color: var(--cor-texto-suave); margin: 0 0 20px; }
+
+.card {
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.06);
+}
+
+/* Topo */
+.topbar { background: var(--cor-primaria); color: #fff; }
+.topbar-inner {
+  max-width: 1100px; margin: 0 auto; padding: 12px 16px;
+  display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+}
+.marca { color: #fff; font-weight: 700; text-decoration: none; font-size: 1.1rem; }
+.menu { display: flex; gap: 16px; flex: 1; }
+.menu a { color: rgba(255, 255, 255, 0.8); text-decoration: none; }
+.menu a.active, .menu a:hover { color: #fff; }
+.usuario { display: flex; align-items: center; gap: 10px; }
+.usuario-nome { font-size: 0.95rem; }
+
+/* Badges */
+.badge { font-size: 0.75rem; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: #e2e8f0; color: #2d3748; }
+.badge-cliente { background: #bee3f8; color: #2a4365; }
+.badge-empresa { background: #fefcbf; color: #744210; }
+.badge-banco { background: #c6f6d5; color: #22543d; }
+
+/* Botões */
+.btn {
+  border: 1px solid transparent; border-radius: 8px; padding: 10px 16px;
+  font: inherit; font-weight: 600; cursor: pointer;
+}
+.btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.btn-primario { background: var(--cor-primaria); color: #fff; }
+.btn-primario:hover:not(:disabled) { background: var(--cor-primaria-hover); }
+.btn-secundario { background: #fff; color: var(--cor-primaria); border-color: var(--cor-borda); }
+.btn-sm { padding: 4px 12px; font-size: 0.85rem; }
+.btn-bloco { width: 100%; margin-top: 8px; }
+
+/* Formulários */
+.campo { display: flex; flex-direction: column; gap: 4px; margin-bottom: 14px; }
+.campo label { font-size: 0.875rem; font-weight: 600; }
+.campo input, .campo select, .campo textarea {
+  font: inherit; padding: 9px 12px; border: 1px solid var(--cor-borda);
+  border-radius: 8px; background: #fff; color: inherit;
+}
+.campo input:focus, .campo select:focus, .campo textarea:focus {
+  outline: 2px solid rgba(44, 82, 130, 0.35); border-color: var(--cor-primaria);
+}
+.grade-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
+
+.alerta { padding: 10px 14px; border-radius: 8px; margin-bottom: 14px; font-size: 0.9rem; }
+.alerta-erro { background: var(--cor-erro-fundo); color: var(--cor-erro); }
+.alerta-sucesso { background: var(--cor-sucesso-fundo); color: var(--cor-sucesso); }
+
+/* Login / cadastro */
+.auth-pagina { min-height: 100vh; display: grid; place-items: center; padding: 24px 16px; }
+.auth-card { width: 100%; max-width: 400px; }
+.auth-card-largo { max-width: 520px; }
+.auth-card h1 { text-align: center; }
+.auth-card .subtitulo { text-align: center; }
+.rodape-form { text-align: center; margin: 16px 0 0; font-size: 0.9rem; color: var(--cor-texto-suave); }
+
+.seletor-perfil { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; }
+.seletor-perfil label {
+  border: 1px solid var(--cor-borda); border-radius: 8px; padding: 8px;
+  text-align: center; cursor: pointer; font-weight: 600; font-size: 0.9rem;
+}
+.seletor-perfil label.ativo { border-color: var(--cor-primaria); background: #ebf4ff; color: var(--cor-primaria); }
+.seletor-perfil input { position: absolute; opacity: 0; pointer-events: none; }
+
+@media (max-width: 560px) {
+  .grade-2 { grid-template-columns: 1fr; }
+  .usuario-nome { display: none; }
+}

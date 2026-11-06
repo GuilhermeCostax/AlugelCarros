@@ -20,3 +20,10 @@ frontend/dist/
 
 # Anotações pessoais
 PLANO.md
+.claude/
+
+# Arquivos de IDE (Eclipse / VS Code Java)
+.classpath
+.project
+.factorypath
+.settings/
