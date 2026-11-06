@@ -1,0 +1,129 @@
+@startuml classes
+title Sistema de Aluguel de Carros — Diagrama de Classes (v2)
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam class {
+  BackgroundColor #F5F9FF
+  BorderColor #2C5282
+}
+hide empty members
+
+abstract class Usuario {
+  - id : Long
+  - login : String
+  - senha : String
+  - nome : String
+  + {abstract} getPerfil() : Perfil
+}
+
+class Cliente {
+  + {static} MAX_RENDIMENTOS : int = 3
+  - rg : String
+  - cpf : String
+  - endereco : String
+  - profissao : String
+  + adicionarRendimento(r : Rendimento) : void
+  + removerRendimento(r : Rendimento) : void
+  + limparRendimentos() : void
+  + getRendaTotal() : BigDecimal
+}
+
+class Rendimento {
+  - id : Long
+  - entidadeEmpregadora : String
+  - valor : BigDecimal
+}
+
+abstract class Agente {
+  - cnpj : String
+}
+
+class Empresa
+class Banco
+
+class Automovel {
+  - id : Long
+  - matricula : String
+  - ano : int
+  - marca : String
+  - modelo : String
+  - placa : String
+  + getDescricao() : String
+}
+
+class PedidoAluguel {
+  + {static} STATUS_ATIVOS : Set<StatusPedido>
+  - id : Long
+  - dataCriacao : LocalDateTime
+  - dataInicio : LocalDate
+  - dataFim : LocalDate
+  - status : StatusPedido
+  - parecer : String
+  - dataAvaliacao : LocalDateTime
+  + {static} novo(c : Cliente, a : Automovel, inicio : LocalDate, fim : LocalDate) : PedidoAluguel
+  + modificar(a : Automovel, inicio : LocalDate, fim : LocalDate) : void
+  + cancelar() : void
+  + aprovar(agente : Agente, parecer : String) : void
+  + reprovar(agente : Agente, parecer : String) : void
+  + contratar() : void
+}
+
+class Contrato {
+  - id : Long
+  - dataAssinatura : LocalDate
+  - valorTotal : BigDecimal
+  - tipoProprietario : TipoProprietario
+}
+
+class ContratoCredito {
+  - id : Long
+  - valor : BigDecimal
+  - taxaJuros : BigDecimal
+  - numeroParcelas : int
+  + getValorParcela() : BigDecimal
+}
+
+enum StatusPedido {
+  PENDENTE
+  APROVADO
+  REPROVADO
+  CONTRATADO
+  CANCELADO
+}
+
+enum TipoProprietario {
+  CLIENTE
+  EMPRESA
+  BANCO
+}
+
+enum Perfil {
+  CLIENTE
+  EMPRESA
+  BANCO
+}
+
+Usuario <|-- Cliente
+Usuario <|-- Agente
+Agente <|-- Empresa
+Agente <|-- Banco
+
+Cliente "1" *-- "0..3" Rendimento : possui >
+Cliente "1" -- "0..*" PedidoAluguel : realiza >
+PedidoAluguel "0..*" --> "1" Automovel : refere-se a >
+PedidoAluguel "0..*" --> "0..1" Agente : avaliado por >
+PedidoAluguel "1" -- "0..1" Contrato : origina >
+Contrato "0..*" --> "0..1" Agente : executado por >
+Contrato "1" -- "0..1" ContratoCredito : financiado por >
+ContratoCredito "0..*" --> "1" Banco : concedido por >
+Automovel "0..*" --> "0..1" Usuario : proprietario >
+
+PedidoAluguel ..> StatusPedido
+Contrato ..> TipoProprietario
+Usuario ..> Perfil
+
+note bottom of ContratoCredito
+  Parcela pela Tabela Price:
+  PMT = V·i / (1 − (1 + i)^−n)
+end note
+@enduml

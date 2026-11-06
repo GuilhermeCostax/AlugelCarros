@@ -1,0 +1,75 @@
+@startuml casos-de-uso
+title Sistema de Aluguel de Carros — Diagrama de Casos de Uso (v2)
+left to right direction
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #F5F9FF
+  BorderColor #2C5282
+}
+
+actor "Cliente" as C
+actor "Usuário" as U
+actor "Agente" as A
+actor "Banco" as B
+actor "Empresa" as E
+
+rectangle "Sistema de Aluguel de Carros" {
+  rectangle "Pedidos (cliente)" {
+    usecase "Manter dados do cliente (US04)" as UC04
+    usecase "Informar rendimentos\n(máx. 3) (US05)" as UC05
+    usecase "Consultar automóveis (US07)" as UC07
+    usecase "Criar pedido (US08)" as UC08
+    usecase "Consultar pedidos\ne status (US09)" as UC09
+    usecase "Cancelar pedido (US11)" as UC11
+  }
+  rectangle "Compartilhado" {
+    usecase "Modificar pedido\n(US10, US13)" as UC10
+    usecase "Consultar contratos (US18)" as UC18
+  }
+  rectangle "Acesso" {
+    usecase "Cadastrar-se (US01)" as UC01
+    usecase "Fazer login (US02)" as UC02
+    usecase "Fazer logout (US03)" as UC03
+  }
+  rectangle "Análise e contratos (agente)" {
+    usecase "Gerenciar clientes (US17)" as UC17
+    usecase "Manter automóveis (US06)" as UC06
+    usecase "Listar pedidos\npara análise (US12)" as UC12
+    usecase "Avaliar pedido\n(parecer financeiro) (US14)" as UC14
+    usecase "Executar contrato (US15)" as UC15
+    usecase "Conceder contrato\nde crédito (US16)" as UC16
+  }
+}
+
+C --> UC04
+C --> UC05
+C --> UC07
+C --> UC08
+C --> UC09
+C --> UC11
+C --> UC10
+C --> UC18
+
+U --> UC01
+U --> UC02
+U --> UC03
+
+A --> UC10
+A --> UC18
+A --> UC17
+A --> UC06
+A --> UC12
+A --> UC14
+A --> UC15
+B --> UC16
+
+UC08 ..> UC07 : <<include>>
+UC14 ..> UC12 : <<include>>
+UC16 ..> UC15 : <<extend>>
+
+U <|-- C
+U <|-- A
+A <|-- E
+A <|-- B
+@enduml

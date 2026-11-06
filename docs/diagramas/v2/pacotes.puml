@@ -1,0 +1,86 @@
+@startuml pacotes
+title Sistema de Aluguel de Carros — Diagrama de Pacotes / Visão Lógica (v2)
+skinparam shadowing false
+skinparam packageStyle folder
+skinparam package {
+  BackgroundColor #F5F9FF
+  BorderColor #2C5282
+}
+skinparam rectangle {
+  BackgroundColor #FFFFFF
+  BorderColor #A0AEC0
+}
+
+package "Subsistema de Construção das Páginas Web\n(frontend — React + Vite) «View»" as WEB {
+  package routes {
+    rectangle "AppRoutes, RotaProtegida,\nRotaPublica" as r_routes
+  }
+  package pages {
+    rectangle "Login, Registro, Home,\nMeusDados, Clientes, ClienteEditar,\nAutomoveis, Pedidos, PedidoForm,\nPedidoDetalhe, Contratos" as r_pages
+  }
+  package components {
+    rectangle "Layout, ClienteForm,\nRendimentosEditor, StatusBadge,\nCampo, Alerta, Carregando" as r_components
+  }
+  package context {
+    rectangle "AuthProvider, useAuth" as r_context
+  }
+  package services {
+    rectangle "api (Axios + JWT), authService,\nclienteService, automovelService,\npedidoService, contratoService" as r_services
+  }
+  package utils {
+    rectangle "erro, formatos,\nperfis, status" as r_utils
+  }
+}
+
+package "Subsistema de Gestão de Pedidos e Contratos\n(backend — Spring Boot, com.aluguelcarros)" as API {
+  package controller <<Controller>> {
+    rectangle "AuthController, ClienteController,\nAutomovelController, PedidoController,\nContratoController" as r_controller
+  }
+  package dto {
+    rectangle "*Request / *Response\n(records)" as r_dto
+  }
+  package service {
+    rectangle "AuthService, ClienteService,\nAutomovelService, PedidoService,\nContratoService" as r_service
+  }
+  package repository {
+    rectangle "UsuarioRepository, ClienteRepository,\nAgenteRepository, AutomovelRepository,\nPedidoAluguelRepository, ContratoRepository,\nContratoCreditoRepository" as r_repository
+  }
+  package model <<Model>> {
+    rectangle "Usuario, Cliente, Rendimento, Agente,\nEmpresa, Banco, Automovel, PedidoAluguel,\nContrato, ContratoCredito, enums" as r_model
+  }
+  package security {
+    rectangle "TokenService, UsuarioLogado" as r_security
+  }
+  package config {
+    rectangle "SecurityConfig\n(JWT, CORS, BCrypt)" as r_config
+  }
+  package exception {
+    rectangle "GlobalExceptionHandler,\nRegraNegocioException,\nRecursoNaoEncontradoException" as r_exception
+  }
+}
+
+database "Supabase\n(PostgreSQL)\nmigrações Flyway" as DB
+
+routes ..> pages
+pages ..> components
+pages ..> context
+pages ..> services
+pages ..> utils
+context ..> services
+
+services ..> controller : HTTP / JSON\n(REST + JWT)
+
+controller ..> dto
+controller ..> service
+service ..> repository
+service ..> model
+service ..> dto
+service ..> security
+service ..> exception
+dto ..> model
+repository ..> model
+security ..> repository
+config ..> security
+
+repository ..> DB : JPA / Hibernate
+@enduml
