@@ -1,6 +1,12 @@
+import { ChevronRight } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import Alerta from '../components/Alerta';
+import CabecalhoPagina from '../components/CabecalhoPagina';
 import Carregando from '../components/Carregando';
 import { useAuth } from '../context/useAuth';
 import { listarContratos } from '../services/contratoService';
@@ -20,58 +26,75 @@ export default function Contratos() {
 
   return (
     <>
-      <div className="cabecalho-pagina">
-        <div>
-          <h1>{ehAgente(usuario.perfil) ? 'Contratos' : 'Meus contratos'}</h1>
-          <p className="subtitulo">Contratos de aluguel executados e créditos associados.</p>
-        </div>
+      <CabecalhoPagina
+        titulo={ehAgente(usuario.perfil) ? 'Contratos' : 'Meus contratos'}
+        descricao="Contratos de aluguel executados e créditos associados."
+      />
+      <div className="grid gap-4">
+        <Alerta>{erro}</Alerta>
+        {contratos === null ? (
+          !erro && <Carregando />
+        ) : (
+          <Card className="py-0">
+            <CardContent className="px-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="pl-4">#</TableHead>
+                    <TableHead>Cliente</TableHead>
+                    <TableHead>Automóvel</TableHead>
+                    <TableHead>Assinatura</TableHead>
+                    <TableHead>Registro</TableHead>
+                    <TableHead className="text-right">Valor</TableHead>
+                    <TableHead>Crédito</TableHead>
+                    <TableHead className="w-0 pr-4"><span className="sr-only">Ações</span></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {contratos.map((c) => (
+                    <TableRow key={c.id}>
+                      <TableCell className="pl-4 text-muted-foreground tabular-nums">{c.id}</TableCell>
+                      <TableCell className="font-medium">{c.cliente}</TableCell>
+                      <TableCell>{c.automovel}</TableCell>
+                      <TableCell className="tabular-nums">{data(c.dataAssinatura)}</TableCell>
+                      <TableCell>
+                        <Badge variant="secondary">{TIPOS_PROPRIETARIO[c.tipoProprietario]}</Badge>
+                      </TableCell>
+                      <TableCell className="text-right font-medium tabular-nums">{moeda(c.valorTotal)}</TableCell>
+                      <TableCell>
+                        {c.credito ? (
+                          <>
+                            <div className="tabular-nums">
+                              {c.credito.numeroParcelas}x {moeda(c.credito.valorParcela)}
+                            </div>
+                            <div className="text-xs text-muted-foreground">{c.credito.banco.nome}</div>
+                          </>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="pr-4">
+                        <Button variant="ghost" size="sm" asChild>
+                          <Link to={`/pedidos/${c.pedidoId}`}>
+                            Ver pedido <ChevronRight />
+                          </Link>
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {contratos.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
+                        Nenhum contrato ainda.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        )}
       </div>
-      <Alerta>{erro}</Alerta>
-      {contratos === null ? (
-        !erro && <Carregando />
-      ) : (
-        <div className="card card-tabela">
-          <div className="tabela-rolagem">
-            <table className="tabela">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Cliente</th>
-                  <th>Automóvel</th>
-                  <th>Assinatura</th>
-                  <th>Registro</th>
-                  <th className="num">Valor</th>
-                  <th>Crédito</th>
-                  <th aria-label="Ações" />
-                </tr>
-              </thead>
-              <tbody>
-                {contratos.map((c) => (
-                  <tr key={c.id}>
-                    <td>{c.id}</td>
-                    <td>{c.cliente}</td>
-                    <td>{c.automovel}</td>
-                    <td>{data(c.dataAssinatura)}</td>
-                    <td>{TIPOS_PROPRIETARIO[c.tipoProprietario]}</td>
-                    <td className="num">{moeda(c.valorTotal)}</td>
-                    <td>
-                      {c.credito
-                        ? `${c.credito.numeroParcelas}x ${moeda(c.credito.valorParcela)} (${c.credito.banco.nome})`
-                        : '—'}
-                    </td>
-                    <td className="acoes-linha">
-                      <Link to={`/pedidos/${c.pedidoId}`} className="btn btn-secundario btn-sm">Ver pedido</Link>
-                    </td>
-                  </tr>
-                ))}
-                {contratos.length === 0 && (
-                  <tr><td colSpan={8} className="vazio">Nenhum contrato ainda.</td></tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
     </>
   );
 }

@@ -1,6 +1,12 @@
+import { ChevronRight, Plus } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Alerta from '../components/Alerta';
+import CabecalhoPagina from '../components/CabecalhoPagina';
 import Carregando from '../components/Carregando';
 import StatusBadge from '../components/StatusBadge';
 import { useAuth } from '../context/useAuth';
@@ -13,6 +19,7 @@ import { STATUS } from '../utils/status';
 export default function Pedidos() {
   const { usuario } = useAuth();
   const agente = ehAgente(usuario.perfil);
+  const navigate = useNavigate();
   const [pedidos, setPedidos] = useState(null);
   const [erro, setErro] = useState('');
   const [filtro, setFiltro] = useState(agente ? 'PENDENTE' : 'TODOS');
@@ -26,77 +33,89 @@ export default function Pedidos() {
 
   return (
     <>
-      <div className="cabecalho-pagina">
-        <div>
-          <h1>{agente ? 'Pedidos de aluguel' : 'Meus pedidos'}</h1>
-          <p className="subtitulo">
-            {agente ? 'Analise os pedidos e execute os contratos aprovados.' : 'Acompanhe o status dos seus pedidos.'}
-          </p>
-        </div>
-        {!agente && <Link to="/pedidos/novo" className="btn btn-primario">+ Novo pedido</Link>}
+      <CabecalhoPagina
+        titulo={agente ? 'Pedidos de aluguel' : 'Meus pedidos'}
+        descricao={agente ? 'Analise os pedidos e execute os contratos aprovados.' : 'Acompanhe o status dos seus pedidos.'}
+        acoes={
+          !agente && (
+            <Button asChild>
+              <Link to="/pedidos/novo">
+                <Plus /> Novo pedido
+              </Link>
+            </Button>
+          )
+        }
+      />
+
+      <div className="grid gap-4">
+        <Alerta>{erro}</Alerta>
+        {pedidos === null ? (
+          !erro && <Carregando />
+        ) : (
+          <Card className="gap-0 py-0">
+            <CardHeader className="overflow-x-auto border-b px-4 pt-3 pb-2">
+              <Tabs value={filtro} onValueChange={setFiltro}>
+                <TabsList variant="line">
+                  {['TODOS', ...Object.keys(STATUS)].map((s) => (
+                    <TabsTrigger key={s} value={s} className="px-3">
+                      {s === 'TODOS' ? 'Todos' : STATUS[s]}
+                      <span className="rounded-full bg-muted px-1.5 text-xs text-muted-foreground tabular-nums">
+                        {s === 'TODOS' ? pedidos.length : contagem(s)}
+                      </span>
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </Tabs>
+            </CardHeader>
+            <CardContent className="px-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="pl-4">#</TableHead>
+                    {agente && <TableHead>Cliente</TableHead>}
+                    <TableHead>Automóvel</TableHead>
+                    <TableHead>Período</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="w-0 pr-4"><span className="sr-only">Ações</span></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {visiveis.map((p) => (
+                    <TableRow key={p.id} className="cursor-pointer" onClick={() => navigate(`/pedidos/${p.id}`)}>
+                      <TableCell className="pl-4 text-muted-foreground tabular-nums">{p.id}</TableCell>
+                      {agente && <TableCell className="font-medium">{p.cliente.nome}</TableCell>}
+                      <TableCell>
+                        <div>{p.automovel.marca} {p.automovel.modelo}</div>
+                        <div className="font-mono text-xs text-muted-foreground">{placa(p.automovel.placa)}</div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="tabular-nums">{data(p.dataInicio)} – {data(p.dataFim)}</div>
+                        <div className="text-xs text-muted-foreground">{p.diarias} diária(s)</div>
+                      </TableCell>
+                      <TableCell><StatusBadge status={p.status} /></TableCell>
+                      <TableCell className="pr-4">
+                        <Button variant={agente && p.status === 'PENDENTE' ? 'default' : 'ghost'} size="sm" asChild>
+                          <Link to={`/pedidos/${p.id}`} onClick={(e) => e.stopPropagation()}>
+                            {agente && p.status === 'PENDENTE' ? 'Avaliar' : 'Detalhes'}
+                            <ChevronRight />
+                          </Link>
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {visiveis.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={agente ? 6 : 5} className="h-24 text-center text-muted-foreground">
+                        Nenhum pedido encontrado.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        )}
       </div>
-
-      <Alerta>{erro}</Alerta>
-
-      {pedidos === null ? (
-        !erro && <Carregando />
-      ) : (
-        <div className="card card-tabela">
-          <div className="abas" role="tablist">
-            {['TODOS', ...Object.keys(STATUS)].map((s) => (
-              <button
-                key={s}
-                role="tab"
-                aria-selected={filtro === s}
-                className={filtro === s ? 'ativa' : ''}
-                onClick={() => setFiltro(s)}
-              >
-                {s === 'TODOS' ? 'Todos' : STATUS[s]}
-                <span className="contador">{s === 'TODOS' ? pedidos.length : contagem(s)}</span>
-              </button>
-            ))}
-          </div>
-          <div className="tabela-rolagem">
-            <table className="tabela">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  {agente && <th>Cliente</th>}
-                  <th>Automóvel</th>
-                  <th>Período</th>
-                  <th>Status</th>
-                  <th aria-label="Ações" />
-                </tr>
-              </thead>
-              <tbody>
-                {visiveis.map((p) => (
-                  <tr key={p.id}>
-                    <td>{p.id}</td>
-                    {agente && <td><strong>{p.cliente.nome}</strong></td>}
-                    <td>
-                      {p.automovel.marca} {p.automovel.modelo}
-                      <div className="texto-suave">{placa(p.automovel.placa)}</div>
-                    </td>
-                    <td>
-                      {data(p.dataInicio)} a {data(p.dataFim)}
-                      <div className="texto-suave">{p.diarias} diária(s)</div>
-                    </td>
-                    <td><StatusBadge status={p.status} /></td>
-                    <td className="acoes-linha">
-                      <Link to={`/pedidos/${p.id}`} className="btn btn-secundario btn-sm">
-                        {agente && p.status === 'PENDENTE' ? 'Avaliar' : 'Detalhes'}
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-                {visiveis.length === 0 && (
-                  <tr><td colSpan={agente ? 6 : 5} className="vazio">Nenhum pedido encontrado.</td></tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
     </>
   );
 }

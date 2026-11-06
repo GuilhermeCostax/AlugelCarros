@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import Alerta from '../components/Alerta';
+import CabecalhoPagina from '../components/CabecalhoPagina';
 import Carregando from '../components/Carregando';
 import ClienteForm from '../components/ClienteForm';
 import { atualizarCliente, buscarCliente, criarCliente } from '../services/clienteService';
@@ -26,24 +27,25 @@ export default function ClienteEditar() {
 
   return (
     <>
-      <div className="cabecalho-pagina">
-        <div>
-          <Link to="/clientes" className="voltar">← Clientes</Link>
-          <h1>{criando ? 'Novo cliente' : 'Editar cliente'}</h1>
-        </div>
+      <CabecalhoPagina
+        voltar={{ to: '/clientes', rotulo: 'Clientes' }}
+        titulo={criando ? 'Novo cliente' : 'Editar cliente'}
+        descricao={criando ? 'Cadastre um novo contratante.' : cliente?.nome}
+      />
+      <div className="grid gap-6">
+        <Alerta>{erro}</Alerta>
+        {cliente ? (
+          <ClienteForm
+            inicial={cliente}
+            criando={criando}
+            textoBotao={criando ? 'Cadastrar cliente' : 'Salvar alterações'}
+            onSalvar={salvar}
+            onCancelar={() => navigate('/clientes')}
+          />
+        ) : (
+          !erro && <Carregando />
+        )}
       </div>
-      <Alerta>{erro}</Alerta>
-      {cliente ? (
-        <ClienteForm
-          inicial={cliente}
-          criando={criando}
-          textoBotao={criando ? 'Cadastrar cliente' : 'Salvar alterações'}
-          onSalvar={salvar}
-          onCancelar={() => navigate('/clientes')}
-        />
-      ) : (
-        !erro && <Carregando />
-      )}
     </>
   );
 }

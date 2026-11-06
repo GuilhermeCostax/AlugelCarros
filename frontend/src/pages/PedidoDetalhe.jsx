@@ -1,8 +1,19 @@
+import { Ban, Check, FileSignature, Landmark, Loader2, Pencil, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Separator } from '@/components/ui/separator';
+import { Textarea } from '@/components/ui/textarea';
+import { cn } from '@/lib/utils';
 import Alerta from '../components/Alerta';
+import CabecalhoPagina from '../components/CabecalhoPagina';
 import Campo from '../components/Campo';
 import Carregando from '../components/Carregando';
+import Confirmar from '../components/Confirmar';
 import StatusBadge from '../components/StatusBadge';
 import { useAuth } from '../context/useAuth';
 import { concederCredito } from '../services/contratoService';
@@ -11,6 +22,19 @@ import { mensagemDeErro } from '../utils/erro';
 import { cpf, data, dataHora, moeda, parcelaPrice, placa } from '../utils/formatos';
 import { PERFIS, ehAgente } from '../utils/perfis';
 import { TIPOS_PROPRIETARIO } from '../utils/status';
+
+function Dados({ itens }) {
+  return (
+    <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-sm">
+      {itens.map(([rotulo, valor]) => (
+        <div key={rotulo} className="contents">
+          <dt className="text-muted-foreground">{rotulo}</dt>
+          <dd>{valor}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
 
 export default function PedidoDetalhe() {
   const { id } = useParams();
@@ -30,9 +54,9 @@ export default function PedidoDetalhe() {
   const podeCancelar = !agente && ['PENDENTE', 'APROVADO'].includes(status);
 
   async function cancelar() {
-    if (!window.confirm('Cancelar este pedido?')) return;
     try {
       setPedido(await cancelarPedido(pedido.id));
+      toast.success('Pedido cancelado.');
     } catch (e) {
       setErro(mensagemDeErro(e));
     }
@@ -40,77 +64,110 @@ export default function PedidoDetalhe() {
 
   return (
     <>
-      <div className="cabecalho-pagina">
-        <div>
-          <Link to="/pedidos" className="voltar">← Pedidos</Link>
-          <h1>Pedido #{pedido.id} <StatusBadge status={status} /></h1>
-          <p className="subtitulo">Criado em {dataHora(pedido.dataCriacao)}</p>
+      <CabecalhoPagina
+        voltar={{ to: '/pedidos', rotulo: 'Pedidos' }}
+        titulo={`Pedido #${pedido.id}`}
+        extra={<StatusBadge status={status} />}
+        descricao={`Criado em ${dataHora(pedido.dataCriacao)}`}
+        acoes={
+          <>
+            {podeModificar && (
+              <Button variant="outline" asChild>
+                <Link to={`/pedidos/${pedido.id}/editar`}>
+                  <Pencil /> Modificar
+                </Link>
+              </Button>
+            )}
+            {podeCancelar && (
+              <Confirmar
+                titulo="Cancelar este pedido?"
+                descricao="O pedido passa para CANCELADO e não poderá mais ser avaliado."
+                textoConfirmar="Cancelar pedido"
+                onConfirmar={cancelar}
+              >
+                <Button variant="destructive">
+                  <Ban /> Cancelar pedido
+                </Button>
+              </Confirmar>
+            )}
+          </>
+        }
+      />
+
+      <div className="grid gap-6">
+        <Alerta>{erro}</Alerta>
+
+        <div className="grid gap-6 md:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Aluguel</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Dados
+                itens={[
+                  ['Automóvel', `${automovel.marca} ${automovel.modelo} ${automovel.ano}`],
+                  ['Placa', <span key="p" className="font-mono">{placa(automovel.placa)}</span>],
+                  ['Período', `${data(pedido.dataInicio)} a ${data(pedido.dataFim)}`],
+                  ['Diárias', pedido.diarias],
+                ]}
+              />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Cliente</CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-4">
+              <Dados
+                itens={[
+                  ['Nome', cliente.nome],
+                  ['CPF', cpf(cliente.cpf)],
+                  ['Profissão', cliente.profissao],
+                  ['Renda total', <span key="r" className="font-semibold">{moeda(cliente.rendaTotal)}</span>],
+                ]}
+              />
+              {cliente.rendimentos.length > 0 && (
+                <ul className="divide-y rounded-lg border text-sm">
+                  {cliente.rendimentos.map((r) => (
+                    <li key={r.id} className="flex justify-between px-3 py-2">
+                      <span>{r.entidadeEmpregadora}</span>
+                      <span className="tabular-nums">{moeda(r.valor)}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </CardContent>
+          </Card>
         </div>
-        <div className="acoes">
-          {podeModificar && <Link to={`/pedidos/${pedido.id}/editar`} className="btn btn-secundario">Modificar</Link>}
-          {podeCancelar && <button className="btn btn-perigo" onClick={cancelar}>Cancelar pedido</button>}
-        </div>
+
+        {pedido.parecer && (
+          <Card className={cn('border-l-4', status === 'REPROVADO' ? 'border-l-red-500' : 'border-l-emerald-500')}>
+            <CardHeader>
+              <CardTitle>Parecer financeiro</CardTitle>
+              <CardDescription>
+                {pedido.agenteAvaliador?.nome} ({PERFIS[pedido.agenteAvaliador?.perfil]}) · {dataHora(pedido.dataAvaliacao)}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm">{pedido.parecer}</p>
+            </CardContent>
+          </Card>
+        )}
+
+        {agente && status === 'PENDENTE' && <FormAvaliacao pedidoId={pedido.id} onConcluir={setPedido} />}
+        {agente && status === 'APROVADO' && (
+          <FormContrato pedidoId={pedido.id} perfilAgente={usuario.perfil} onConcluir={setPedido} />
+        )}
+
+        {contrato && (
+          <ContratoCard
+            contrato={contrato}
+            podeConcederCredito={usuario.perfil === 'BANCO' && !contrato.credito}
+            onAtualizar={(c) => setPedido({ ...pedido, contrato: c })}
+          />
+        )}
       </div>
-
-      <Alerta>{erro}</Alerta>
-
-      <div className="grade-detalhe">
-        <section className="card">
-          <h2 className="secao">Aluguel</h2>
-          <dl className="dados">
-            <dt>Automóvel</dt>
-            <dd>{automovel.marca} {automovel.modelo} {automovel.ano}</dd>
-            <dt>Placa</dt>
-            <dd>{placa(automovel.placa)}</dd>
-            <dt>Período</dt>
-            <dd>{data(pedido.dataInicio)} a {data(pedido.dataFim)} ({pedido.diarias} diária(s))</dd>
-          </dl>
-        </section>
-
-        <section className="card">
-          <h2 className="secao">Cliente</h2>
-          <dl className="dados">
-            <dt>Nome</dt>
-            <dd>{cliente.nome}</dd>
-            <dt>CPF</dt>
-            <dd>{cpf(cliente.cpf)}</dd>
-            <dt>Profissão</dt>
-            <dd>{cliente.profissao}</dd>
-            <dt>Renda total</dt>
-            <dd><strong>{moeda(cliente.rendaTotal)}</strong></dd>
-          </dl>
-          {cliente.rendimentos.length > 0 && (
-            <ul className="lista-rendimentos">
-              {cliente.rendimentos.map((r) => (
-                <li key={r.id}><span>{r.entidadeEmpregadora}</span><span>{moeda(r.valor)}</span></li>
-              ))}
-            </ul>
-          )}
-        </section>
-      </div>
-
-      {pedido.parecer && (
-        <section className={`card parecer parecer-${status === 'REPROVADO' ? 'negativo' : 'positivo'}`}>
-          <h2 className="secao">Parecer financeiro</h2>
-          <p>{pedido.parecer}</p>
-          <p className="texto-suave">
-            {pedido.agenteAvaliador?.nome} ({PERFIS[pedido.agenteAvaliador?.perfil]}) · {dataHora(pedido.dataAvaliacao)}
-          </p>
-        </section>
-      )}
-
-      {agente && status === 'PENDENTE' && <FormAvaliacao pedidoId={pedido.id} onConcluir={setPedido} />}
-      {agente && status === 'APROVADO' && (
-        <FormContrato pedidoId={pedido.id} perfilAgente={usuario.perfil} onConcluir={setPedido} />
-      )}
-
-      {contrato && (
-        <ContratoCard
-          contrato={contrato}
-          podeConcederCredito={usuario.perfil === 'BANCO' && !contrato.credito}
-          onAtualizar={(c) => setPedido({ ...pedido, contrato: c })}
-        />
-      )}
     </>
   );
 }
@@ -118,7 +175,7 @@ export default function PedidoDetalhe() {
 function FormAvaliacao({ pedidoId, onConcluir }) {
   const [parecer, setParecer] = useState('');
   const [erro, setErro] = useState('');
-  const [enviando, setEnviando] = useState(false);
+  const [enviando, setEnviando] = useState(null);
 
   async function avaliar(aprovado) {
     setErro('');
@@ -126,36 +183,46 @@ function FormAvaliacao({ pedidoId, onConcluir }) {
       setErro('Escreva o parecer antes de avaliar.');
       return;
     }
-    setEnviando(true);
+    setEnviando(aprovado ? 'aprovar' : 'reprovar');
     try {
       onConcluir(await avaliarPedido(pedidoId, { aprovado, parecer }));
+      toast.success(aprovado ? 'Pedido aprovado.' : 'Pedido reprovado.');
     } catch (e) {
       setErro(mensagemDeErro(e));
     } finally {
-      setEnviando(false);
+      setEnviando(null);
     }
   }
 
   return (
-    <section className="card destaque">
-      <h2 className="secao">Avaliação financeira</h2>
-      <div className="campo">
-        <label htmlFor="parecer">Parecer</label>
-        <textarea
-          id="parecer"
-          rows={3}
-          maxLength={500}
-          value={parecer}
-          onChange={(e) => setParecer(e.target.value)}
-          placeholder="Ex.: renda compatível com o valor do aluguel."
-        />
-      </div>
-      <Alerta>{erro}</Alerta>
-      <div className="acoes">
-        <button className="btn btn-perigo" disabled={enviando} onClick={() => avaliar(false)}>Reprovar</button>
-        <button className="btn btn-sucesso" disabled={enviando} onClick={() => avaliar(true)}>Aprovar</button>
-      </div>
-    </section>
+    <Card className="ring-2 ring-primary/40">
+      <CardHeader>
+        <CardTitle>Avaliação financeira</CardTitle>
+        <CardDescription>Analise a renda do cliente e registre o parecer.</CardDescription>
+      </CardHeader>
+      <CardContent className="grid gap-4">
+        <div className="grid gap-2">
+          <Label htmlFor="parecer">Parecer</Label>
+          <Textarea
+            id="parecer"
+            rows={3}
+            maxLength={500}
+            value={parecer}
+            onChange={(e) => setParecer(e.target.value)}
+            placeholder="Ex.: renda compatível com o valor do aluguel."
+          />
+        </div>
+        <Alerta>{erro}</Alerta>
+      </CardContent>
+      <CardFooter className="justify-end gap-2 border-t">
+        <Button variant="destructive" disabled={!!enviando} onClick={() => avaliar(false)}>
+          {enviando === 'reprovar' ? <Loader2 className="animate-spin" /> : <X />} Reprovar
+        </Button>
+        <Button className="bg-emerald-600 hover:bg-emerald-700" disabled={!!enviando} onClick={() => avaliar(true)}>
+          {enviando === 'aprovar' ? <Loader2 className="animate-spin" /> : <Check />} Aprovar
+        </Button>
+      </CardFooter>
+    </Card>
   );
 }
 
@@ -170,6 +237,7 @@ function FormContrato({ pedidoId, perfilAgente, onConcluir }) {
     setEnviando(true);
     try {
       onConcluir(await executarContrato(pedidoId, { ...form, valorTotal: Number(form.valorTotal) }));
+      toast.success('Contrato executado.');
     } catch (err) {
       setErro(mensagemDeErro(err));
     } finally {
@@ -177,38 +245,56 @@ function FormContrato({ pedidoId, perfilAgente, onConcluir }) {
     }
   }
 
+  const opcoes = [
+    { valor: 'CLIENTE', rotulo: 'Em nome do cliente' },
+    { valor: perfilAgente, rotulo: perfilAgente === 'EMPRESA' ? 'Em nome da empresa (você)' : 'Em nome do banco (você)' },
+  ];
+
   return (
-    <form className="card destaque" onSubmit={enviar}>
-      <h2 className="secao">Executar contrato</h2>
-      <p className="texto-suave">Defina em nome de quem o automóvel ficará registrado e o valor total do contrato.</p>
-      <div className="seletor-perfil seletor-2" role="radiogroup" aria-label="Proprietário do automóvel">
-        {['CLIENTE', perfilAgente].map((tipo) => (
-          <label key={tipo} className={form.tipoProprietario === tipo ? 'ativo' : ''}>
-            <input
-              type="radio"
-              name="tipoProprietario"
-              value={tipo}
-              checked={form.tipoProprietario === tipo}
-              onChange={(e) => setForm({ ...form, tipoProprietario: e.target.value })}
-            />
-            {tipo === 'CLIENTE' ? 'Em nome do cliente' : `Em nome do ${TIPOS_PROPRIETARIO[tipo].toLowerCase()} (você)`}
-          </label>
-        ))}
-      </div>
-      <Campo
-        label="Valor total (R$)"
-        id="valorTotal"
-        type="number"
-        min="0.01"
-        step="0.01"
-        value={form.valorTotal}
-        onChange={(e) => setForm({ ...form, valorTotal: e.target.value })}
-        required
-      />
-      <Alerta>{erro}</Alerta>
-      <div className="acoes">
-        <button className="btn btn-primario" disabled={enviando}>{enviando ? 'Executando…' : 'Executar contrato'}</button>
-      </div>
+    <form onSubmit={enviar}>
+      <Card className="ring-2 ring-primary/40">
+        <CardHeader>
+          <CardTitle>Executar contrato</CardTitle>
+          <CardDescription>Defina em nome de quem o automóvel ficará registrado e o valor total do contrato.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4">
+          <RadioGroup
+            value={form.tipoProprietario}
+            onValueChange={(tipoProprietario) => setForm({ ...form, tipoProprietario })}
+            className="grid gap-3 sm:grid-cols-2"
+            aria-label="Proprietário do automóvel"
+          >
+            {opcoes.map(({ valor, rotulo }) => (
+              <Label
+                key={valor}
+                htmlFor={`prop-${valor}`}
+                className="flex cursor-pointer items-center gap-3 rounded-lg border p-4 font-normal has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/10 has-[[data-state=checked]]:ring-1 has-[[data-state=checked]]:ring-primary"
+              >
+                <RadioGroupItem value={valor} id={`prop-${valor}`} />
+                {rotulo}
+              </Label>
+            ))}
+          </RadioGroup>
+          <Campo
+            label="Valor total (R$)"
+            id="valorTotal"
+            type="number"
+            min="0.01"
+            step="0.01"
+            className="sm:max-w-xs"
+            value={form.valorTotal}
+            onChange={(e) => setForm({ ...form, valorTotal: e.target.value })}
+            required
+          />
+          <Alerta>{erro}</Alerta>
+        </CardContent>
+        <CardFooter className="justify-end border-t">
+          <Button type="submit" disabled={enviando}>
+            {enviando ? <Loader2 className="animate-spin" /> : <FileSignature />}
+            {enviando ? 'Executando…' : 'Executar contrato'}
+          </Button>
+        </CardFooter>
+      </Card>
     </form>
   );
 }
@@ -216,40 +302,53 @@ function FormContrato({ pedidoId, perfilAgente, onConcluir }) {
 function ContratoCard({ contrato, podeConcederCredito, onAtualizar }) {
   const { credito } = contrato;
   return (
-    <section className="card">
-      <h2 className="secao">Contrato #{contrato.id}</h2>
-      <dl className="dados">
-        <dt>Assinado em</dt>
-        <dd>{data(contrato.dataAssinatura)}</dd>
-        <dt>Valor total</dt>
-        <dd><strong>{moeda(contrato.valorTotal)}</strong></dd>
-        <dt>Executado por</dt>
-        <dd>{contrato.agente?.nome ?? '—'}</dd>
-        <dt>Registro do automóvel</dt>
-        <dd>
-          {TIPOS_PROPRIETARIO[contrato.tipoProprietario]}
-          {contrato.proprietario && ` — ${contrato.proprietario.nome}`}
-        </dd>
-      </dl>
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <FileSignature className="size-4 text-primary" /> Contrato #{contrato.id}
+        </CardTitle>
+        <CardDescription>Assinado em {data(contrato.dataAssinatura)}</CardDescription>
+      </CardHeader>
+      <CardContent className="grid gap-6">
+        <Dados
+          itens={[
+            ['Valor total', <span key="v" className="font-semibold">{moeda(contrato.valorTotal)}</span>],
+            ['Executado por', contrato.agente?.nome ?? '—'],
+            [
+              'Registro do automóvel',
+              `${TIPOS_PROPRIETARIO[contrato.tipoProprietario]}${contrato.proprietario ? ` — ${contrato.proprietario.nome}` : ''}`,
+            ],
+          ]}
+        />
 
-      {credito ? (
-        <div className="credito">
-          <h3>Contrato de crédito</h3>
-          <dl className="dados">
-            <dt>Banco</dt>
-            <dd>{credito.banco.nome}</dd>
-            <dt>Valor financiado</dt>
-            <dd>{moeda(credito.valor)}</dd>
-            <dt>Condições</dt>
-            <dd>{credito.numeroParcelas}x de <strong>{moeda(credito.valorParcela)}</strong> ({credito.taxaJuros}% a.m.)</dd>
-          </dl>
-        </div>
-      ) : (
-        <p className="texto-suave">Sem contrato de crédito associado.</p>
-      )}
+        <Separator />
 
-      {podeConcederCredito && <FormCredito contrato={contrato} onConcluir={onAtualizar} />}
-    </section>
+        {credito ? (
+          <div className="grid gap-3">
+            <h3 className="flex items-center gap-2 font-medium">
+              <Landmark className="size-4 text-primary" /> Contrato de crédito
+            </h3>
+            <Dados
+              itens={[
+                ['Banco', credito.banco.nome],
+                ['Valor financiado', moeda(credito.valor)],
+                [
+                  'Condições',
+                  <span key="c">
+                    {credito.numeroParcelas}x de <span className="font-semibold">{moeda(credito.valorParcela)}</span> (
+                    {credito.taxaJuros}% a.m.)
+                  </span>,
+                ],
+              ]}
+            />
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">Sem contrato de crédito associado.</p>
+        )}
+
+        {podeConcederCredito && <FormCredito contrato={contrato} onConcluir={onAtualizar} />}
+      </CardContent>
+    </Card>
   );
 }
 
@@ -264,11 +363,14 @@ function FormCredito({ contrato, onConcluir }) {
     setErro('');
     setEnviando(true);
     try {
-      onConcluir(await concederCredito(contrato.id, {
-        valor: Number(form.valor),
-        taxaJuros: Number(form.taxaJuros),
-        numeroParcelas: Number(form.numeroParcelas),
-      }));
+      onConcluir(
+        await concederCredito(contrato.id, {
+          valor: Number(form.valor),
+          taxaJuros: Number(form.taxaJuros),
+          numeroParcelas: Number(form.numeroParcelas),
+        }),
+      );
+      toast.success('Crédito concedido.');
     } catch (err) {
       setErro(mensagemDeErro(err));
     } finally {
@@ -277,9 +379,12 @@ function FormCredito({ contrato, onConcluir }) {
   }
 
   return (
-    <form className="credito destaque-interno" onSubmit={enviar}>
-      <h3>Conceder crédito</h3>
-      <div className="grade-3">
+    <form onSubmit={enviar} className="grid gap-4 rounded-lg border bg-muted/40 p-4">
+      <div>
+        <h3 className="font-medium">Conceder crédito</h3>
+        <p className="text-sm text-muted-foreground">O valor não pode ser maior que o total do contrato.</p>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-3">
         <Campo label="Valor (R$)" id="valor" type="number" min="0.01" step="0.01" max={contrato.valorTotal}
           value={form.valor} onChange={alterar} required />
         <Campo label="Juros (% a.m.)" id="taxaJuros" type="number" min="0" max="100" step="0.01"
@@ -287,12 +392,18 @@ function FormCredito({ contrato, onConcluir }) {
         <Campo label="Parcelas" id="numeroParcelas" type="number" min="1" max="120"
           value={form.numeroParcelas} onChange={alterar} required />
       </div>
-      <p className="texto-suave">
-        Parcela estimada: <strong>{moeda(parcelaPrice(form.valor, form.taxaJuros, form.numeroParcelas))}</strong>
-      </p>
       <Alerta>{erro}</Alerta>
-      <div className="acoes">
-        <button className="btn btn-primario" disabled={enviando}>{enviando ? 'Concedendo…' : 'Conceder crédito'}</button>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <span className="text-sm text-muted-foreground">
+          Parcela estimada:{' '}
+          <span className="font-semibold text-foreground">
+            {moeda(parcelaPrice(form.valor, form.taxaJuros, form.numeroParcelas))}
+          </span>
+        </span>
+        <Button type="submit" disabled={enviando}>
+          {enviando ? <Loader2 className="animate-spin" /> : <Landmark />}
+          {enviando ? 'Concedendo…' : 'Conceder crédito'}
+        </Button>
       </div>
     </form>
   );
